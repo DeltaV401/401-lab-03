@@ -3,22 +3,54 @@
 console.log(process.argv);
 
 const fs = require('fs');
-let readData = [];
+const util = require('util');
 
-fs.readFile('files/data/person.json', (err, data) => {
-  if(err) throw err;
-  let person = JSON.parse(data);
-  console.log(person);
+const promiseToReadFile = util.promisify(fs.readFile);
+const promiseToWriteFile = util.promisify(fs.writeFile);
 
-  readData.push(person);
+const fileToRead = 'files/data/person.json';
+console.log(fileToRead);
 
-  modifyData('Tony', 'Stark', {'type': 'scruffy', 'color': 'black'}, ['shawarma', 'alcohol', 'coffee grounds'], true, 1);
+const readData = [];
+promiseToReadFile(fileToRead)
+  .then(data => {
+    readData.push(data.toString());
 
-  fs.writeFile('files/data/person.json', JSON.stringify(readData[0]).trim(), (err) => {
-    if (err) throw err;
-    console.log('Data written to file');
+    console.log('async readFile succeeded!');
+    console.log(data.toString());
+
+    readDataLength();
+
+    return 'Promises are fun';
+  })
+  .then(message => {
+    modifyData();
+    console.log('Promise message', message);
+  })
+  .catch(err => {
+    console.error(err);
   });
-});
+
+const writeData = [];
+promiseToWriteFile(fileToRead)
+  .then(data => {
+    writeData.push(data.toString());
+
+    console.log('async writeFile succeeded!');
+    console.log(data.toString());
+
+    return 'Promises aren\' fun anymore';
+  })
+  .then(message => {
+    console.log('Promise message v2', message);
+  })
+  .catch(err => {
+    console.log(err);
+  });
+
+function readDataLength() {
+  console.log(readData.length);
+}
 
 function modifyData(first, last, hair, foods, married, kids) {
   readData[0].firstName = first;
@@ -28,5 +60,3 @@ function modifyData(first, last, hair, foods, married, kids) {
   readData[0].married = married;
   readData[0].kids = kids;
 }
-
-console.log('Post file call');
